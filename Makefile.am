@@ -16,6 +16,8 @@ libpilot_la_SOURCES = pilot.c pilot.h
 
 flyer_SOURCES = flyer.c utils.c utils.h
 flyer_LDADD = libpilot.la
+flyer_LDFLAGS = $(cwiid_LIBS)
+flyer_CFLAGS = $(cwiid_CFLAGS)
 
 test: all
 	cd t && $(MAKE) test
