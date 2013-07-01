@@ -34,12 +34,12 @@
 /configure
 /core
 /depcomp
-/hlsm3u8
-/hlsrelay
+/flyer
 /install-sh
 /libtool
 /ltmain.sh
 /missing
+/pilot
 /stamp-h*
 /tags
 /test.*
