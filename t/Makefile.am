@@ -1,4 +1,4 @@
-TESTBIN = basic
+TESTBIN = basic camera transform
 
 TESTPERL = 
 

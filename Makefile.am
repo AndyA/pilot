@@ -12,7 +12,9 @@ include_HEADERS = pilot.h
 
 bin_PROGRAMS = flyer
 
-libpilot_la_SOURCES = pilot.c pilot.h
+libpilot_la_SOURCES = pilot.c pilot.h \
+		      pi_camera.c \
+		      pi_transform.c
 
 flyer_SOURCES = flyer.c utils.c utils.h
 flyer_LDADD = libpilot.la

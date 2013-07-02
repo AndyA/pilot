@@ -1,14 +1,32 @@
 /* pilot.h */
 
-#ifndef HLSM3U8_H_
-#define HLSM3U8_H_
+#ifndef PILOT_H_
+#define PILOT_H_
 
-#include <jsondata.h>
-#include <stdio.h>
+enum { pX, pY, pZ, pMAX };
 
-jd_var *pilot_parse(jd_var *out, FILE *in);
+typedef struct {
+  double p[pMAX];
+} pi_point;
+
+typedef struct {
+  pi_point a, b;
+} pi_vector;
+
+typedef struct {
+  double m[pMAX + 1][pMAX + 1];
+} pi_affine;
+
+typedef struct {
+  pi_vector primary; /* the wiimote's primary (long axis) */
+  pi_vector normal;  /* normal to the camera's horiz plane */
+} pi_camera;
+
+/* pi_transform */
+
+void pi_transform_init(pi_affine *m);
 
 #endif
 
-/* vim:ts=2:sw=2:sts=2:et:ft=c 
+/* vim:ts=2:sw=2:sts=2:et:ft=c
  */
