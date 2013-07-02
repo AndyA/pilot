@@ -18,33 +18,27 @@ static void err_handler(cwiid_wiimote_t *wiimote, const char *s, va_list ap) {
   printf("\n");
 }
 
+static void ir_report(const struct cwiid_ir_src *ir) {
+  for (unsigned i = 0; i < CWIID_IR_SRC_COUNT; i++) {
+    printf("%s", i == 0 ? "\r" : ", ");
+    if (ir[i].valid)
+      printf("[%4d, %4d, %2d]", ir[i].pos[CWIID_X], ir[i].pos[CWIID_Y], ir[i].size);
+    else
+      printf("[              ]");
+  }
+}
+
 static void cwiid_callback(cwiid_wiimote_t *wiimote, int mesg_count,
                            union cwiid_mesg mesg[], struct timespec *timestamp) {
-  int i, j;
-  int valid_source;
   (void) timestamp;
   (void) wiimote;
 
-  for (i = 0; i < mesg_count; i++) {
+  for (int i = 0; i < mesg_count; i++) {
     switch (mesg[i].type) {
-    case CWIID_MESG_STATUS:
     case CWIID_MESG_IR:
-      printf("IR Report: ");
-      valid_source = 0;
-      for (j = 0; j < CWIID_IR_SRC_COUNT; j++) {
-        if (mesg[i].ir_mesg.src[j].valid) {
-          valid_source = 1;
-          printf("(%d,%d) ", mesg[i].ir_mesg.src[j].pos[CWIID_X],
-                 mesg[i].ir_mesg.src[j].pos[CWIID_Y]);
-        }
-      }
-      if (!valid_source) {
-        printf("no sources detected");
-      }
-      printf("\n");
+      ir_report(&(mesg[i].ir_mesg.src[0]));
       break;
     default:
-      printf("Unknown Report");
       break;
     }
   }
