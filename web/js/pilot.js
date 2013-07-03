@@ -1,60 +1,73 @@
-var model = new JSONTrigger({});
-
 $(function() {
-  var here = new URLParser(window.location.href);
-  var api = here.root() + '/api';
-  var ev = new EV(api + '/ev/');
 
-  ev.on('test', function(ev, data) {
-    console.log("Got message: " + ev + ": " + data.sequence);
-  });
+  var WIDTH = 1280;
+  var HEIGHT = 720;
+  var VANISH = 1000;
+  var PERSPECTIVE = 1000;
 
-  ev.on('error', function(ev, data) {
-    var msg = "Error";
-    if (data.status) msg += ": " + data.status;
-    if (data.error) msg += " (" + data.error + ")";
-    console.log(msg);
-  });
+  function project(p) {
+    var sc = (p.p[2] + VANISH) / PERSPECTIVE;
+    return ([p.p[0] * sc, p.p[1] * sc]);
+  }
 
-  ev.on('model', function(ev, data) {
-    //    console.log("[model]", data);
-    model.setData(data);
-  });
+  function line(ctx, p1, p2) {
+    var r1 = project(p1);
+    var r2 = project(p2);
 
-  ev.on('model-patch', function(ev, data) {
-    //    console.log("[model-patch]", data);
-    model.patch(data);
-  });
+    console.log('[' + r1[0] + ', ' + r1[1] + ']-[' + r2[0] + ', ' + r2[1] + ']');
 
-  model.on('$.streams.*.INR.*', function(path, before, after, name, app) {
-    if (before && !after) {
-      var id = name + '_preview';
-      $('#' + id).remove();
+    ctx.beginPath();
+    ctx.moveTo(r1[0] + WIDTH / 2, HEIGHT / 2 - r1[1]);
+    ctx.lineTo(r2[0] + WIDTH / 2, HEIGHT / 2 - r2[1]);
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  function _render(ctx, v, m, seen) {
+    if (seen.hasOwnProperty(v.id)) return;
+    seen[v.id] = true;
+    console.log("from " + v.id);
+    var p1 = v.p.transform(m);
+    for (var i = 0; i < v.l.length; i++) {
+      var v2 = v.l[i];
+//      if (seen.hasOwnProperty(v2.id)) continue;
+      console.log("  to " + v2.id);
+      var p2 = v2.p.transform(m);
+      line(ctx, p1, p2);
+      _render(ctx, v2, m, seen);
     }
+  }
 
-    if (!before && after) {
-      var id = name + '_preview';
-      $('#main').append($('<div class="thumb_player"></div>').append($('<div></div>').attr({
-        id: id
-      })));
-      var flashvars = {
-        src: after.preview,
-        autoPlay: true,
-        controlBarAutoHide: true,
-      };
+  function render(ctx, v, m) {
+    _render(ctx, v, m, {});
+  }
 
-      var parameters = {
-        allowFullScreen: "true"
-      };
+  var $display = $('#display');
+  var ctx = $display[0].getContext('2d');
 
-      var attr = {
-        name: name
-      };
+  var v = [
+  new Vertex(new Point(-1, -1, -1)), //
+  new Vertex(new Point(-1, -1, 1)), //
+  new Vertex(new Point(-1, 1, -1)), //
+  new Vertex(new Point(-1, 1, 1)), //
+  new Vertex(new Point(1, -1, -1)), //
+  new Vertex(new Point(1, -1, 1)), //
+  new Vertex(new Point(1, 1, -1)), //
+  new Vertex(new Point(1, 1, 1))];
 
-      swfobject.embedSWF("StrobeMediaPlayback.swf", id, 256, 144, //
-      "10.1.0", "expressInstall.swf", flashvars, parameters, attr);
-    }
-  });
+  v[0].link(v[1]);
+  v[0].link(v[2]);
+  v[0].link(v[4]);
+  v[1].link(v[3]);
+  v[1].link(v[5]);
+  v[2].link(v[3]);
+  v[2].link(v[6]);
+  v[3].link(v[7]);
+  v[4].link(v[5]);
+  v[4].link(v[6]);
+  v[5].link(v[7]);
+  v[6].link(v[7]);
 
-  ev.listen();
+  var view = new Transform(200);
+  render(ctx, v[0], view);
 });
