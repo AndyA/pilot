@@ -4,6 +4,7 @@
 #include "tap.h"
 
 #include "jd_pretty.h"
+#include "pilot.h"
 
 static void test_transform(void) {
 
