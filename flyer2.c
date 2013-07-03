@@ -63,20 +63,28 @@ static jd_var *load_json(jd_var *out, FILE *f) {
   return out;
 }
 
+static jd_var *load_config(jd_var *out, const char *file) {
+  FILE *f;
+  if (f = fopen(file, "r"), !f) die("Can't read %s: %m\n", file);
+  load_json(out, f);
+  fclose(f);
+  return out;
+}
+
 static void open_worker(void *ctx) {
   (void) ctx;
 }
 
-int main(int argc, char *argv[]) {
+static void runloop(void) {
   bdaddr_t bdaddr;
   cwiid_wiimote_t *wiimote;
 
   cwiid_set_err(err_handler);
 
-  if (argc > 1)
-    str2ba(argv[1], &bdaddr);
-  else
-    bdaddr = *BDADDR_ANY;
+  /*  if (argc > 1)*/
+  /*    str2ba(argv[1], &bdaddr);*/
+  /*  else*/
+  /*    bdaddr = *BDADDR_ANY;*/
 
   printf("Press 1+2 on Wiimote\n");
 
@@ -96,6 +104,14 @@ int main(int argc, char *argv[]) {
 
   if (cwiid_close(wiimote))
     die("Error on disconnect");
+}
+
+int main(int argc, char *argv[]) {
+  if (argc != 2) die("Syntax: flyer <config.json>");
+  scope {
+    jd_var *config = load_config(jd_nv(), argv[1]);
+    jd_printf("%lJ\n", config);
+  }
 
   return 0;
 }
